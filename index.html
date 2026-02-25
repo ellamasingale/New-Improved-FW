@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>facewest</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sand: #F7F3EE;
+            --warm-white: #FFFCF7;
+            --coral: #E07A5F;
+            --coral-light: #F4A88E;
+            --terracotta: #C8553D;
+            --sage: #B8C5A8;
+            --sage-dark: #8B9E7A;
+            --sky: #CDDEE8;
+            --dusk: #E8C7BA;
+            --charcoal: #2A2D34;
+            --text-primary: #1A1C23;
+            --text-secondary: #5A5D68;
+            --text-muted: #9DA0AA;
+            --overlay: rgba(255, 252, 247, 0.92);
+            --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.04);
+            --shadow-soft: 0 4px 16px rgba(0, 0, 0, 0.06);
+            --shadow-medium: 0 8px 32px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--sand);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            line-height: 1.6;
+        }
+
+        /* Premium sun tracker with facewest logo */
+        .sun-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--overlay);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+            padding: 20px 20px 24px;
+        }
+
+        .sun-logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .sun-logo h1 {
+            font-size: 20px;
+            font-weight: 300;
+            letter-spacing: 0.12em;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .sun-arc-container {
+            max-width: 580px;
+            margin: 0 auto;
+            position: relative;
+            height: 120px;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sun-arc-container.night-mode {
+            transform: scaleY(-1);
+        }
+
+        .sun-arc-container svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .sun-arc-day {
+            fill: none;
+            stroke: url(#sun-gradient);
+            stroke-width: 2;
+            stroke-linecap: round;
+            opacity: 0.25;
+        }
+
+        .sun-dot {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FFE0B2, var(--coral));
+            box-shadow: 0 0 16px rgba(224, 122, 95, 0.5), 0 2px 6px rgba(0,0,0,0.12);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-left: -6px;
+            margin-top: -6px;
+        }
+
+        .sun-dot::after {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(224,122,95,0.2), transparent);
+        }
+
+        /* App container */
+        .app-container {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 32px 20px 100px;
+        }
+
+        /* Post card */
+        .post {
+            background: white;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-soft);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .post:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .post-header {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .post-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--coral-light), var(--sage));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+            font-size: 16px;
+        }
+
+        .post-user {
+            flex: 1;
+        }
+
+        .post-username {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .post-location {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .post-time {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .post-image {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: linear-gradient(180deg, var(--dusk), var(--coral));
+            position: relative;
+        }
+
+        .post-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .post-rating {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--coral);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .post-content {
+            padding: 16px 20px 20px;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 12px;
+        }
+
+        .post-action {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            border: none;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .post-action:hover {
+            color: var(--coral);
+        }
+
+        .post-action svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .post-caption {
+            font-size: 15px;
+            line-height: 1.5;
+            color: var(--text-primary);
+        }
+
+        /* Upload section */
+        .upload-section {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: var(--shadow-soft);
+            text-align: center;
+        }
+
+        .upload-status {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .upload-time-window {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--coral);
+            margin-bottom: 20px;
+        }
+
+        .upload-desc {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .upload-zone {
+            width: 100%;
+            aspect-ratio: 4/3;
+            max-height: 320px;
+            border: 2px dashed rgba(0,0,0,0.12);
+            border-radius: 16px;
+            background: var(--sand);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--coral);
+            background: rgba(224, 122, 95, 0.04);
+        }
+
+        .upload-prompt {
+            font-size: 15px;
+            color: var(--text-muted);
+        }
+
+        .upload-btn {
+            padding: 14px 32px;
+            background: var(--coral);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(224, 122, 95, 0.2);
+        }
+
+        .upload-btn:hover {
+            background: var(--terracotta);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(224, 122, 95, 0.3);
+        }
+
+        .upload-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Profile */
+        .profile-header {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .profile-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .profile-avatar {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--coral-light), var(--sage));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: 600;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-name {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .profile-handle {
+            font-size: 15px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .profile-edit {
+            padding: 10px 24px;
+            background: var(--sand);
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .profile-edit:hover {
+            background: #EBE7E0;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 32px;
+            padding: 20px 0;
+            border-top: 1px solid rgba(0,0,0,0.06);
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+
+        .profile-stat {
+            text-align: center;
+        }
+
+        .profile-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: block;
+        }
+
+        .profile-stat-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Profile grid */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+        }
+
+        .profile-grid-item {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, var(--dusk), var(--coral));
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .profile-grid-item:hover {
+            transform: scale(0.98);
+        }
+
+        .profile-grid-rating {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(255,255,255,0.9);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--coral);
+        }
+
+        /* Bottom nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--overlay);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(0,0,0,0.04);
+            padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
+            z-index: 99;
+        }
+
+        .bottom-nav-inner {
+            max-width: 640px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            padding: 8px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.2s;
+            letter-spacing: 0.03em;
+        }
+
+        .nav-btn.active {
+            color: var(--coral);
+        }
+
+        .nav-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Screen management */
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Utility */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Therapeutic touches */
+        @media (prefers-reduced-motion: no-preference) {
+            * {
+                transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Premium sun tracker with logo -->
+<div class="sun-header">
+    <div class="sun-logo">
+        <h1>facewest</h1>
+    </div>
+    <div class="sun-arc-container" id="sun-arc-container">
+        <svg viewBox="0 0 100 120" preserveAspectRatio="none">
+            <defs>
+                <linearGradient id="sun-gradient" x1="100%" y1="0%" x2="0%" y2="0%">
+                    <stop offset="0%" stop-color="#8B9E7A"/>
+                    <stop offset="50%" stop-color="#E8C7BA"/>
+                    <stop offset="100%" stop-color="#E07A5F"/>
+                </linearGradient>
+            </defs>
+            <!-- Single arc that flips for day/night -->
+            <path class="sun-arc-day" d="M 100 60 Q 50 10 0 60"/>
+        </svg>
+        <div class="sun-dot" id="sun-dot"></div>
+    </div>
+</div>
+
+<!-- App -->
+<div class="app-container">
+    <!-- Feed screen -->
+    <div class="screen active" id="feed-screen">
+
+        <div class="post">
+            <div class="post-header">
+                <div class="post-avatar">M</div>
+                <div class="post-user">
+                    <div class="post-username">Maya Chen</div>
+                    <div class="post-location">Big Sur, CA</div>
+                </div>
+                <div class="post-time">2h ago</div>
+            </div>
+            <div class="post-image">
+                <div class="post-rating">10/10</div>
+            </div>
+            <div class="post-content">
+                <div class="post-actions">
+                    <button class="post-action">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        <span>248</span>
+                    </button>
+                    <button class="post-action">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                        <span>32</span>
+                    </button>
+                </div>
+                <p class="post-caption">Tonight's sky felt like a warm embrace. The way the light dissolved into the horizon—pure magic.</p>
+            </div>
+        </div>
+
+        <div class="post">
+            <div class="post-header">
+                <div class="post-avatar">J</div>
+                <div class="post-user">
+                    <div class="post-username">Jordan Lee</div>
+                    <div class="post-location">Tulum, Mexico</div>
+                </div>
+                <div class="post-time">5h ago</div>
+            </div>
+            <div class="post-image">
+                <div class="post-rating">9/10</div>
+            </div>
+            <div class="post-content">
+                <div class="post-actions">
+                    <button class="post-action">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        <span>192</span>
+                    </button>
+                    <button class="post-action">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                        <span>18</span>
+                    </button>
+                </div>
+                <p class="post-caption">Golden hour by the beach. Watching the day slowly fade.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload screen -->
+    <div class="screen" id="upload-screen">
+
+        <div class="upload-section">
+            <div class="upload-status" id="upload-status">Posting opens soon</div>
+            <div class="upload-time-window" id="upload-window">—</div>
+            <p class="upload-desc">Capture your sunset during the golden window: 45 minutes before sunset until 20 minutes after.</p>
+            
+            <div class="upload-zone" id="upload-zone">
+                <input type="file" accept="image/*" capture="environment" hidden id="upload-input">
+                <span class="upload-prompt">Tap to add your sunset</span>
+            </div>
+            
+            <button class="upload-btn" id="upload-btn" disabled>Post your sunset</button>
+        </div>
+    </div>
+
+    <!-- Profile screen -->
+    <div class="screen" id="profile-screen">
+        <div class="profile-header">
+            <div class="profile-top">
+                <div class="profile-avatar">E</div>
+                <div class="profile-info">
+                    <div class="profile-name">Sunset Lover</div>
+                    <div class="profile-handle">@user</div>
+                    <button class="profile-edit">Edit profile</button>
+                </div>
+            </div>
+            <div class="profile-stats">
+                <div class="profile-stat">
+                    <span class="profile-stat-value">24</span>
+                    <span class="profile-stat-label">Sunsets</span>
+                </div>
+                <div class="profile-stat">
+                    <span class="profile-stat-value">1.2k</span>
+                    <span class="profile-stat-label">Likes</span>
+                </div>
+                <div class="profile-stat">
+                    <span class="profile-stat-value">12</span>
+                    <span class="profile-stat-label">Places</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-grid">
+            <div class="profile-grid-item"><div class="profile-grid-rating">10</div></div>
+            <div class="profile-grid-item"><div class="profile-grid-rating">9</div></div>
+            <div class="profile-grid-item"><div class="profile-grid-rating">8</div></div>
+            <div class="profile-grid-item"><div class="profile-grid-rating">10</div></div>
+            <div class="profile-grid-item"><div class="profile-grid-rating">7</div></div>
+            <div class="profile-grid-item"><div class="profile-grid-rating">9</div></div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom nav -->
+<nav class="bottom-nav">
+    <div class="bottom-nav-inner">
+        <button class="nav-btn active" data-screen="feed">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <span>Today</span>
+        </button>
+        <button class="nav-btn" data-screen="upload">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            <span>Share</span>
+        </button>
+        <button class="nav-btn" data-screen="profile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>You</span>
+        </button>
+    </div>
+</nav>
+
+<script>
+(function() {
+    'use strict';
+
+    // State
+    var sunTimes = { sunrise: null, sunset: null };
+    var lastFetch = { date: null, lat: null, lng: null };
+
+    // Elements
+    var sunDot = document.getElementById('sun-dot');
+    var sunArcContainer = document.getElementById('sun-arc-container');
+    var uploadStatus = document.getElementById('upload-status');
+    var uploadWindow = document.getElementById('upload-window');
+    var uploadBtn = document.getElementById('upload-btn');
+
+    // Navigation
+    var navBtns = document.querySelectorAll('.nav-btn');
+    var screens = document.querySelectorAll('.screen');
+
+    navBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var target = btn.dataset.screen;
+            navBtns.forEach(function(b) { b.classList.remove('active'); });
+            screens.forEach(function(s) { s.classList.remove('active'); });
+            btn.classList.add('active');
+            document.getElementById(target + '-screen').classList.add('active');
+        });
+    });
+
+    // Time helpers
+    function parseISO(str) {
+        if (!str) return null;
+        var d = new Date(str);
+        return isNaN(d.getTime()) ? null : d;
+    }
+
+    function formatTime(d) {
+        return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    }
+
+    // Sun position: full circle, right to left, arc flips at night
+    function updateSun() {
+        var sunrise = sunTimes.sunrise;
+        var sunset = sunTimes.sunset;
+        var now = new Date();
+        var progress = 0.5;
+        var isDay = true;
+
+        if (sunrise && sunset) {
+            var dayStart = sunrise.getTime();
+            var dayEnd = sunset.getTime();
+            var nowMs = now.getTime();
+            
+            // Full 24h cycle
+            var nextSunrise = new Date(sunrise);
+            nextSunrise.setDate(nextSunrise.getDate() + 1);
+            
+            if (nowMs >= dayStart && nowMs <= dayEnd) {
+                // Daytime: right to left on arc
+                var dayTotal = dayEnd - dayStart;
+                progress = (nowMs - dayStart) / dayTotal;
+                isDay = true;
+            } else {
+                // Nighttime: right to left, arc is flipped
+                var nightStart = dayEnd;
+                var nightEnd = nextSunrise.getTime();
+                var nightTotal = nightEnd - nightStart;
+                progress = (nowMs - nightStart) / nightTotal;
+                if (progress < 0) progress = 0;
+                if (progress > 1) progress = 1;
+                isDay = false;
+            }
+
+            checkUploadWindow(sunrise, sunset, now);
+        } else {
+            // Fallback: assume 6am-6pm day
+            var mins = now.getHours() * 60 + now.getMinutes();
+            var dayMins = 6 * 60; // 6am
+            var nightMins = 18 * 60; // 6pm
+            
+            if (mins >= dayMins && mins <= nightMins) {
+                progress = (mins - dayMins) / (nightMins - dayMins);
+                isDay = true;
+            } else {
+                var nightTotal = 24 * 60 - (nightMins - dayMins);
+                if (mins >= nightMins) {
+                    progress = (mins - nightMins) / nightTotal;
+                } else {
+                    progress = (mins + (24 * 60 - nightMins)) / nightTotal;
+                }
+                isDay = false;
+            }
+        }
+
+        // Flip the arc container at night
+        if (isDay) {
+            sunArcContainer.classList.remove('night-mode');
+        } else {
+            sunArcContainer.classList.add('night-mode');
+        }
+
+        // Position on arc: right to left, following quadratic bezier
+        // Arc path: M 100 60 Q 50 10 0 60
+        // This is a quadratic bezier with start (100,60), control (50,10), end (0,60)
+        var t = progress; // progress along curve (0 to 1)
+        
+        // Quadratic bezier formula
+        var x0 = 100, y0 = 60; // Start point
+        var x1 = 50, y1 = 10;  // Control point
+        var x2 = 0, y2 = 60;   // End point
+        
+        var x = Math.pow(1-t, 2) * x0 + 2 * (1-t) * t * x1 + Math.pow(t, 2) * x2;
+        var y = Math.pow(1-t, 2) * y0 + 2 * (1-t) * t * y1 + Math.pow(t, 2) * y2;
+        
+        sunDot.style.left = x + '%';
+        sunDot.style.top = y + 'px';
+    }
+
+    // Upload window
+    function checkUploadWindow(sunrise, sunset, now) {
+        var openBefore = 45 * 60 * 1000;
+        var openAfter = 20 * 60 * 1000;
+        var windowStart = new Date(sunset.getTime() - openBefore);
+        var windowEnd = new Date(sunset.getTime() + openAfter);
+
+        if (now >= windowStart && now <= windowEnd) {
+            uploadStatus.textContent = 'Posting is open';
+            uploadWindow.textContent = 'Share your sunset now';
+            uploadBtn.disabled = false;
+        } else if (now < windowStart) {
+            var msToOpen = windowStart - now;
+            var hours = Math.floor(msToOpen / 3600000);
+            var mins = Math.floor((msToOpen % 3600000) / 60000);
+            
+            uploadStatus.textContent = 'Posting opens in';
+            if (hours > 0) {
+                uploadWindow.textContent = hours + ' hour' + (hours > 1 ? 's' : '') + ' ' + mins + ' min';
+            } else {
+                uploadWindow.textContent = mins + ' minute' + (mins !== 1 ? 's' : '');
+            }
+            uploadBtn.disabled = true;
+        } else {
+            uploadStatus.textContent = 'Posting closed';
+            uploadWindow.textContent = 'Come back tomorrow';
+            uploadBtn.disabled = true;
+        }
+    }
+
+    // Fetch sun times
+    function fetchSun(lat, lng) {
+        fetch('https://api.sunrise-sunset.org/json?lat=' + lat + '&lng=' + lng + '&formatted=0')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.status !== 'OK') return;
+                var rise = parseISO(data.results.sunrise);
+                var set = parseISO(data.results.sunset);
+                if (rise && set) {
+                    sunTimes.sunrise = rise;
+                    sunTimes.sunset = set;
+                    var now = new Date();
+                    lastFetch.date = now.toDateString();
+                    lastFetch.lat = lat;
+                    lastFetch.lng = lng;
+                    updateSun();
+                }
+            })
+            .catch(function() {});
+    }
+
+    // Tick
+    function tick() {
+        var now = new Date();
+        if (sunTimes.sunrise && sunTimes.sunset) {
+            if (lastFetch.date !== now.toDateString() && lastFetch.lat) {
+                fetchSun(lastFetch.lat, lastFetch.lng);
+            } else {
+                updateSun();
+            }
+        } else {
+            updateSun();
+        }
+    }
+
+    setInterval(tick, 5000);
+    tick();
+
+    // Get location
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                fetchSun(pos.coords.latitude, pos.coords.longitude);
+            },
+            function() {},
+            { timeout: 10000, maximumAge: 300000 }
+        );
+    }
+})();
+</script>
+
+</body>
+</html>
